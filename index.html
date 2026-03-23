@@ -17,14 +17,14 @@
     projectId: "elan-profile",
     storageBucket: "elan-profile.firebasestorage.app",
     messagingSenderId: "18139740276",
-    appId: "1:18139740276:web:54fa1d1856fabc46a5b921"
+    appId: "1:18139740276:web:54fa1d1856fabc46a5b921",
+    measurementId: "G-X497N7LWZS"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const storage = getStorage(app);
 
-  // Expor para uso global
   window._db = db;
   window._storage = storage;
   window._collection = collection;
@@ -39,14 +39,16 @@
   window._ref = ref;
   window._uploadBytes = uploadBytes;
   window._getDownloadURL = getDownloadURL;
+  window._fbReady = false;
 
   window.addEventListener('load', () => {
     setTimeout(() => {
+      window._fbReady = true;
       loadPosts();
       loadProfile();
       document.getElementById('fbStatus').textContent = '🟢 Online';
       document.getElementById('fbStatus').className = 'fb-status online';
-    }, 1000);
+    }, 1200);
   });
 </script>
 
@@ -70,7 +72,6 @@
   html { scroll-behavior: smooth; }
   body { font-family: 'DM Sans', sans-serif; background: var(--gray-900); color: var(--white); min-height: 100vh; }
 
-  /* NAV */
   nav {
     position: sticky; top:0; z-index:100;
     background: rgba(15,18,24,0.95); backdrop-filter: blur(12px);
@@ -96,7 +97,6 @@
   .fb-status.online { background:rgba(0,200,100,.15); color:#00c864; border:1px solid rgba(0,200,100,.3); }
   .fb-status.offline { background:rgba(255,200,0,.15); color:#ffcc00; border:1px solid rgba(255,200,0,.3); }
 
-  /* COVER */
   .cover-section {
     position: relative; height: 220px; overflow:hidden;
     background: linear-gradient(135deg, #0a3d6e 0%, #0a66c2 50%, #005fa3 100%);
@@ -116,7 +116,6 @@
   .cover-edit-btn:hover { background: rgba(0,0,0,.65); }
   #cover-upload { display:none; }
 
-  /* PROFILE */
   .profile-header {
     background: var(--gray-800); border-bottom: 1px solid var(--card-border);
     padding: 0 5% 24px;
@@ -138,6 +137,7 @@
     display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.9rem; z-index:2;
   }
   #avatar-upload { display:none; }
+
   .profile-meta { margin-top:14px; }
   .profile-name { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; }
   .profile-title { color: var(--blue-mid); font-size:.92rem; font-weight:500; margin-top:3px; }
@@ -157,7 +157,6 @@
   }
   .btn-secondary:hover { background: var(--blue-glow); }
 
-  /* LAYOUT */
   .main-layout {
     display: grid; grid-template-columns: 300px 1fr;
     gap: 20px; max-width: 1100px; margin: 24px auto; padding: 0 5%;
@@ -170,8 +169,6 @@
     font-family:'Syne',sans-serif; font-size:.92rem; font-weight:700;
     text-transform:uppercase; letter-spacing:.08em; color:var(--gray-400); margin-bottom:14px;
   }
-
-  /* SKILLS */
   .skill-item { margin-bottom:14px; }
   .skill-label { display:flex; justify-content:space-between; font-size:.83rem; margin-bottom:5px; }
   .skill-label span:first-child { color:var(--white); font-weight:500; }
@@ -179,7 +176,6 @@
   .skill-bar { height:5px; background: var(--gray-700); border-radius:3px; overflow:hidden; }
   .skill-fill { height:100%; border-radius:3px; background: linear-gradient(90deg, var(--blue-deep), var(--accent)); }
 
-  /* EDU */
   .edu-item { display:flex; gap:12px; margin-bottom:14px; }
   .edu-icon {
     width:38px; height:38px; border-radius:8px; flex-shrink:0;
@@ -189,7 +185,6 @@
   .edu-info h4 { font-size:.87rem; font-weight:600; }
   .edu-info p { color:var(--gray-400); font-size:.78rem; margin-top:2px; }
 
-  /* CONTACT */
   .contact-link {
     display:flex; align-items:center; gap:10px; padding:9px 0;
     border-bottom:1px solid var(--gray-700); color:var(--gray-200);
@@ -198,7 +193,6 @@
   .contact-link:last-child { border-bottom:none; }
   .contact-link:hover { color:var(--blue-mid); }
 
-  /* CREATE POST */
   .create-post {
     background: var(--card-bg); border:1px solid var(--card-border);
     border-radius:14px; padding:16px; margin-bottom:16px;
@@ -225,7 +219,6 @@
   }
   .post-action-btn:hover { background:var(--gray-700); color:var(--blue-mid); }
 
-  /* MODAL */
   .modal-overlay {
     display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
     z-index:200; align-items:center; justify-content:center; padding:16px;
@@ -283,7 +276,6 @@
   .btn-post:hover { background:var(--blue-mid); }
   .btn-post:disabled { opacity:.4; cursor:not-allowed; }
 
-  /* FEED POST */
   .feed-post {
     background: var(--card-bg); border:1px solid var(--card-border);
     border-radius:14px; margin-bottom:16px; overflow:hidden;
@@ -315,7 +307,6 @@
   .reaction-btn:hover { background:var(--gray-700); color:var(--blue-mid); }
   .reaction-btn.liked { color: var(--blue-mid); font-weight:600; }
 
-  /* TABS */
   .section-tab { display:flex; border-bottom:1px solid var(--card-border); margin-bottom:20px; }
   .tab-btn {
     background:none; border:none; color:var(--gray-400); padding:12px 20px;
@@ -324,7 +315,6 @@
   }
   .tab-btn.active { color:var(--blue-mid); border-bottom-color:var(--blue-mid); }
 
-  /* EXPERIENCE */
   .experience-item {
     display:flex; gap:14px; margin-bottom:20px; padding-bottom:20px;
     border-bottom:1px solid var(--gray-700);
@@ -340,11 +330,9 @@
   .exp-info .exp-period { color:var(--gray-400); font-size:.78rem; margin-top:3px; }
   .exp-info .exp-desc { color:var(--gray-200); font-size:.83rem; line-height:1.6; margin-top:8px; }
 
-  /* PAGES */
   .page-section { display:none; }
   .page-section.active { display:block; }
 
-  /* LOADING */
   .loading {
     display:flex; align-items:center; justify-content:center; gap:10px;
     padding:40px; color:var(--gray-400); font-size:.88rem;
@@ -356,7 +344,6 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* TOAST */
   .toast {
     position:fixed; bottom:24px; right:24px; z-index:300;
     background:var(--blue-deep); color:#fff; padding:12px 20px; border-radius:10px;
@@ -365,12 +352,20 @@
   }
   .toast.show { transform:translateY(0); opacity:1; }
 
-  /* TAGS */
   .tag {
     background:var(--blue-glow); border:1px solid var(--card-border);
     padding:5px 14px; border-radius:20px; font-size:.8rem; color:var(--blue-mid); display:inline-block;
   }
   .tags-wrap { display:flex; flex-wrap:wrap; gap:8px; }
+
+  /* Senha input */
+  .senha-input {
+    width:100%; background:var(--gray-700); border:1.5px solid var(--card-border);
+    border-radius:10px; padding:12px 16px; color:var(--white);
+    font-family:'DM Sans',sans-serif; font-size:.95rem; outline:none;
+    transition: border-color .2s;
+  }
+  .senha-input:focus { border-color: var(--blue-mid); }
 
   ::-webkit-scrollbar { width:6px; }
   ::-webkit-scrollbar-track { background:var(--gray-900); }
@@ -404,7 +399,7 @@
   </div>
   <div class="nav-actions">
     <span class="fb-status offline" id="fbStatus">⏳ Conectando...</span>
-    <button class="btn-nav solid" onclick="openComposer()">+ Publicar</button>
+    <button class="btn-nav solid" onclick="pedirSenha(openComposerInterno)">+ Publicar</button>
   </div>
 </nav>
 
@@ -412,18 +407,18 @@
 <div class="cover-section" id="coverSection">
   <div class="cover-pattern" id="coverPattern"></div>
   <img class="cover-img" id="coverImg" src="" alt="" style="display:none">
-  <button class="cover-edit-btn" onclick="document.getElementById('cover-upload').click()">📷 Alterar capa</button>
+  <button class="cover-edit-btn" onclick="pedirSenha(() => document.getElementById('cover-upload').click())">📷 Alterar capa</button>
   <input type="file" id="cover-upload" accept="image/*" onchange="changeCover(event)">
 </div>
 
 <!-- PROFILE -->
 <div class="profile-header">
   <div class="avatar-wrap">
-    <div class="avatar" id="avatarDiv" onclick="document.getElementById('avatar-upload').click()">
+    <div class="avatar" id="avatarDiv" onclick="pedirSenha(() => document.getElementById('avatar-upload').click())">
       <img id="avatarImg" src="" alt="">
       <span id="avatarInitials">ET</span>
     </div>
-    <div class="avatar-cam" onclick="document.getElementById('avatar-upload').click()">📷</div>
+    <div class="avatar-cam" onclick="pedirSenha(() => document.getElementById('avatar-upload').click())">📷</div>
     <input type="file" id="avatar-upload" accept="image/*" onchange="changeAvatar(event)">
   </div>
   <div class="profile-meta">
@@ -432,7 +427,7 @@
     <div class="profile-location">📍 Bahia, Brasil</div>
     <div class="profile-bio">Profissional com dupla formação em Engenharia de Produção Mecânica e Análise e Desenvolvimento de Sistemas. Habilidades em gestão de projetos, programação e ferramentas de engenharia. Em transição para novas oportunidades alinhadas ao meu perfil técnico.</div>
     <div class="profile-actions">
-      <button class="btn-primary" onclick="openComposer()">✏️ Nova publicação</button>
+      <button class="btn-primary" onclick="pedirSenha(openComposerInterno)">✏️ Nova publicação</button>
       <button class="btn-secondary" onclick="showPage('curriculum', document.querySelectorAll('.nav-links a')[1])">📄 Ver currículo</button>
       <a href="https://linkedin.com/in/elan-teixeira" target="_blank"><button class="btn-secondary">🔗 LinkedIn</button></a>
     </div>
@@ -441,7 +436,6 @@
 
 <!-- MAIN -->
 <div class="main-layout">
-  <!-- SIDEBAR -->
   <aside>
     <div class="card">
       <div class="card-title">Ferramentas & Skills</div>
@@ -491,7 +485,6 @@
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
   <main>
     <!-- FEED -->
     <div class="page-section active" id="page-feed">
@@ -499,31 +492,24 @@
         <button class="tab-btn active" onclick="switchTab(this,'tab-posts','tab-photos')">Publicações</button>
         <button class="tab-btn" onclick="switchTab(this,'tab-photos','tab-posts')">Fotos</button>
       </div>
-
       <div class="create-post">
         <div class="create-post-top">
           <div class="mini-avatar" id="miniAvatar">
             <img id="miniAvatarImg" src="" alt="">
             <span id="miniAvatarInit">ET</span>
           </div>
-          <div class="post-input" onclick="openComposer()">O que você quer compartilhar, Elan?</div>
+          <div class="post-input" onclick="pedirSenha(openComposerInterno)">O que você quer compartilhar, Elan?</div>
         </div>
         <div class="post-actions">
-          <button class="post-action-btn" onclick="openComposerWithMedia()">📷 Foto / Vídeo</button>
-          <button class="post-action-btn" onclick="openComposer()">✏️ Texto</button>
+          <button class="post-action-btn" onclick="pedirSenha(openComposerComMidia)">📷 Foto / Vídeo</button>
+          <button class="post-action-btn" onclick="pedirSenha(openComposerInterno)">✏️ Texto</button>
         </div>
       </div>
-
       <div id="tab-posts">
-        <div class="loading" id="loadingPosts">
-          <div class="spinner"></div> Carregando publicações...
-        </div>
+        <div class="loading" id="loadingPosts"><div class="spinner"></div> Carregando publicações...</div>
       </div>
-
       <div id="tab-photos" style="display:none;">
-        <div class="loading" id="loadingPhotos">
-          <div class="spinner"></div> Carregando fotos...
-        </div>
+        <div class="loading" id="loadingPhotos"><div class="spinner"></div> Carregando fotos...</div>
       </div>
     </div>
 
@@ -570,16 +556,11 @@
       <div class="card">
         <div class="card-title">Competências</div>
         <div class="tags-wrap">
-          <span class="tag">Project Libre</span>
-          <span class="tag">MS Project</span>
-          <span class="tag">Primavera P6</span>
-          <span class="tag">SQL</span>
-          <span class="tag">Python</span>
-          <span class="tag">Excel Avançado</span>
-          <span class="tag">Gestão de Projetos</span>
-          <span class="tag">Eng. de Produção</span>
-          <span class="tag">Movimentação de Cargas</span>
-          <span class="tag">Análise de Sistemas</span>
+          <span class="tag">Project Libre</span><span class="tag">MS Project</span>
+          <span class="tag">Primavera P6</span><span class="tag">SQL</span>
+          <span class="tag">Python</span><span class="tag">Excel Avançado</span>
+          <span class="tag">Gestão de Projetos</span><span class="tag">Eng. de Produção</span>
+          <span class="tag">Movimentação de Cargas</span><span class="tag">Análise de Sistemas</span>
         </div>
       </div>
     </div>
@@ -599,7 +580,27 @@
   </main>
 </div>
 
-<!-- COMPOSER MODAL -->
+<!-- MODAL SENHA -->
+<div class="modal-overlay" id="senhaModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <h3>🔐 Área do Administrador</h3>
+      <button class="modal-close" onclick="closeSenha()">×</button>
+    </div>
+    <div class="modal-body" style="padding:24px 24px 16px;">
+      <p style="color:var(--gray-400);font-size:.86rem;margin-bottom:14px;">Digite a senha para publicar:</p>
+      <input type="password" id="senhaInput" class="senha-input" placeholder="Senha..."
+        onkeydown="if(event.key==='Enter') verificarSenha()">
+      <div id="senhaErro" style="color:#ff4444;font-size:.8rem;margin-top:8px;display:none;">❌ Senha incorreta!</div>
+    </div>
+    <div style="padding:0 20px 20px;display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="closeSenha()">Cancelar</button>
+      <button class="btn-primary" onclick="verificarSenha()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMPOSER -->
 <div class="modal-overlay" id="composerModal">
   <div class="modal">
     <div class="modal-header">
@@ -608,7 +609,7 @@
     </div>
     <div class="modal-body">
       <div style="display:flex;gap:12px;align-items:flex-start;">
-        <div class="mini-avatar" id="composerAvatar">
+        <div class="mini-avatar">
           <img id="composerAvatarImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
           <span id="composerAvatarInit">ET</span>
         </div>
@@ -625,8 +626,7 @@
     </div>
     <div class="composer-footer">
       <div class="composer-tools">
-        <button class="tool-btn" title="Foto/Vídeo" onclick="document.getElementById('media-upload').click()">📷</button>
-        <button class="tool-btn" title="Hashtag">#</button>
+        <button class="tool-btn" onclick="document.getElementById('media-upload').click()">📷</button>
       </div>
       <button class="btn-post" id="publishBtn" onclick="publishPost()">
         <span id="publishBtnText">Publicar</span>
@@ -643,7 +643,33 @@
   let avatarSrc = '';
   let mediaFile = null;
   let mediaType = '';
-  let currentTab = 'tab-posts';
+  let autenticado = false;
+  const SENHA = 'Elan@2026';
+
+  // ── SENHA ──
+  function pedirSenha(callback) {
+    if (autenticado) { callback(); return; }
+    window._senhaCallback = callback;
+    document.getElementById('senhaModal').classList.add('open');
+    setTimeout(() => document.getElementById('senhaInput').focus(), 150);
+  }
+  function verificarSenha() {
+    const val = document.getElementById('senhaInput').value;
+    if (val === SENHA) {
+      autenticado = true;
+      closeSenha();
+      if (window._senhaCallback) { window._senhaCallback(); window._senhaCallback = null; }
+    } else {
+      document.getElementById('senhaErro').style.display = 'block';
+      document.getElementById('senhaInput').value = '';
+      document.getElementById('senhaInput').focus();
+    }
+  }
+  function closeSenha() {
+    document.getElementById('senhaModal').classList.remove('open');
+    document.getElementById('senhaInput').value = '';
+    document.getElementById('senhaErro').style.display = 'none';
+  }
 
   // ── NAVIGATION ──
   function showPage(page, el) {
@@ -652,50 +678,42 @@
     document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
     if (el) el.classList.add('active');
   }
-
   function switchTab(btn, showId, hideId) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(showId).style.display = 'block';
     document.getElementById(hideId).style.display = 'none';
-    currentTab = showId;
   }
 
-  // ── PROFILE LOAD ──
+  // ── PROFILE ──
   async function loadProfile() {
     if (!window._db) return;
     try {
-      const docSnap = await window._getDoc(window._doc(window._db, 'profile', 'main'));
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.avatarUrl) setAvatarUI(data.avatarUrl);
-        if (data.coverUrl) setCoverUI(data.coverUrl);
+      const snap = await window._getDoc(window._doc(window._db, 'profile', 'main'));
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d.avatarUrl) setAvatarUI(d.avatarUrl);
+        if (d.coverUrl) setCoverUI(d.coverUrl);
       }
-    } catch(e) { console.log('Perfil ainda não salvo'); }
+    } catch(e) { console.log('Perfil novo'); }
   }
 
   // ── AVATAR ──
   async function changeAvatar(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     showToast('⏳ Enviando foto de perfil...');
     try {
-      const storageRef = window._ref(window._storage, 'profile/avatar_' + Date.now());
-      await window._uploadBytes(storageRef, file);
-      const url = await window._getDownloadURL(storageRef);
-      avatarSrc = url;
+      const r = window._ref(window._storage, 'profile/avatar_' + Date.now());
+      await window._uploadBytes(r, file);
+      const url = await window._getDownloadURL(r);
       setAvatarUI(url);
       await window._setDoc(window._doc(window._db, 'profile', 'main'), { avatarUrl: url }, { merge: true });
       showToast('✅ Foto de perfil atualizada!');
     } catch(e) {
-      // fallback local
-      const url = URL.createObjectURL(file);
-      avatarSrc = url;
-      setAvatarUI(url);
-      showToast('✅ Foto atualizada localmente!');
+      console.error('Avatar error:', e);
+      showToast('❌ Erro: ' + e.message);
     }
   }
-
   function setAvatarUI(url) {
     avatarSrc = url;
     ['avatarImg','miniAvatarImg','composerAvatarImg'].forEach(id => {
@@ -710,23 +728,20 @@
 
   // ── COVER ──
   async function changeCover(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     showToast('⏳ Enviando foto de capa...');
     try {
-      const storageRef = window._ref(window._storage, 'profile/cover_' + Date.now());
-      await window._uploadBytes(storageRef, file);
-      const url = await window._getDownloadURL(storageRef);
+      const r = window._ref(window._storage, 'profile/cover_' + Date.now());
+      await window._uploadBytes(r, file);
+      const url = await window._getDownloadURL(r);
       setCoverUI(url);
       await window._setDoc(window._doc(window._db, 'profile', 'main'), { coverUrl: url }, { merge: true });
       showToast('✅ Foto de capa atualizada!');
     } catch(e) {
-      const url = URL.createObjectURL(file);
-      setCoverUI(url);
-      showToast('✅ Capa atualizada localmente!');
+      console.error('Cover error:', e);
+      showToast('❌ Erro: ' + e.message);
     }
   }
-
   function setCoverUI(url) {
     const img = document.getElementById('coverImg');
     img.src = url; img.style.display = 'block';
@@ -734,12 +749,12 @@
   }
 
   // ── COMPOSER ──
-  function openComposer() {
+  function openComposerInterno() {
     document.getElementById('composerModal').classList.add('open');
     setTimeout(() => document.getElementById('postText').focus(), 100);
   }
-  function openComposerWithMedia() {
-    openComposer();
+  function openComposerComMidia() {
+    document.getElementById('composerModal').classList.add('open');
     setTimeout(() => document.getElementById('media-upload').click(), 200);
   }
   function closeComposer() {
@@ -748,24 +763,20 @@
     document.getElementById('postCaption').value = '';
     removeMedia();
   }
-
   function previewMedia(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files[0]; if (!file) return;
     mediaFile = file;
     const url = URL.createObjectURL(file);
-    const preview = document.getElementById('composerPreview');
+    document.getElementById('composerPreview').style.display = 'block';
+    document.getElementById('postCaption').style.display = 'block';
     const img = document.getElementById('previewImg');
     const vid = document.getElementById('previewVideo');
-    preview.style.display = 'block';
-    document.getElementById('postCaption').style.display = 'block';
     if (file.type.startsWith('image/')) {
       mediaType = 'image'; img.src = url; img.style.display = 'block'; vid.style.display = 'none';
     } else {
       mediaType = 'video'; vid.src = url; vid.style.display = 'block'; img.style.display = 'none';
     }
   }
-
   function removeMedia() {
     mediaFile = null; mediaType = '';
     document.getElementById('composerPreview').style.display = 'none';
@@ -780,6 +791,7 @@
     const text = document.getElementById('postText').value.trim();
     const caption = document.getElementById('postCaption').value.trim();
     if (!text && !mediaFile) { showToast('⚠️ Escreva algo ou adicione uma mídia!'); return; }
+    if (!window._db) { showToast('⚠️ Firebase ainda carregando, tente novamente!'); return; }
 
     const btn = document.getElementById('publishBtn');
     const btnText = document.getElementById('publishBtnText');
@@ -793,116 +805,96 @@
         await window._uploadBytes(storageRef, mediaFile);
         mediaUrl = await window._getDownloadURL(storageRef);
       }
-
-      const postData = {
-        text,
-        caption,
-        mediaUrl,
-        mediaType,
+      await window._addDoc(window._collection(window._db, 'posts'), {
+        text, caption, mediaUrl, mediaType,
         avatarUrl: avatarSrc,
         likes: 0,
-        createdAt: new Date().toISOString(),
-        timestamp: Date.now()
-      };
-
-      await window._addDoc(window._collection(window._db, 'posts'), postData);
+        timestamp: Date.now(),
+        createdAt: new Date().toISOString()
+      });
       closeComposer();
       showToast('✅ Publicado com sucesso!');
     } catch(e) {
-      console.error(e);
-      showToast('❌ Erro ao publicar. Verifique sua conexão.');
+      console.error('Publish error:', e);
+      showToast('❌ Erro: ' + e.message);
     }
-
     btn.disabled = false; btnText.textContent = 'Publicar';
   }
 
   // ── LOAD POSTS ──
   function loadPosts() {
     if (!window._db) { setTimeout(loadPosts, 1000); return; }
-
     const q = window._query(window._collection(window._db, 'posts'), window._orderBy('timestamp', 'desc'));
-
     window._onSnapshot(q, (snapshot) => {
       document.getElementById('loadingPosts').style.display = 'none';
       document.getElementById('loadingPhotos').style.display = 'none';
-
-      const postsContainer = document.getElementById('tab-posts');
-      const photosContainer = document.getElementById('tab-photos');
-
-      // Limpar posts antigos (manter loading)
-      postsContainer.innerHTML = '';
-      photosContainer.innerHTML = '';
+      const postsEl = document.getElementById('tab-posts');
+      const photosEl = document.getElementById('tab-photos');
+      postsEl.innerHTML = '';
+      photosEl.innerHTML = '';
 
       if (snapshot.empty) {
-        postsContainer.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📝</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma publicação ainda.<br>Clique em <strong style="color:var(--blue-mid)">+ Publicar</strong> para começar!</div></div>';
-        photosContainer.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📷</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma foto ainda.</div></div>';
+        postsEl.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📝</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma publicação ainda.<br>Clique em <strong style="color:var(--blue-mid)">+ Publicar</strong> para começar!</div></div>';
+        photosEl.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📷</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma foto ainda.</div></div>';
         return;
       }
 
       let hasPhotos = false;
       snapshot.forEach(docSnap => {
-        const post = docSnap.data();
+        const p = docSnap.data();
         const id = docSnap.id;
-        const timeAgo = getTimeAgo(post.timestamp);
-        const avatarHTML = post.avatarUrl
-          ? `<img src="${post.avatarUrl}" alt="">`
-          : 'ET';
+        const time = getTimeAgo(p.timestamp);
+        const avatar = p.avatarUrl ? `<img src="${p.avatarUrl}" alt="">` : 'ET';
+        const mediaHTML = p.mediaUrl ? (p.mediaType === 'image'
+          ? `<div class="post-media"><img src="${p.mediaUrl}" alt=""></div>`
+          : `<div class="post-media"><video src="${p.mediaUrl}" controls></video></div>`) : '';
+        const captionHTML = p.caption ? `<div class="post-caption">📝 ${p.caption}</div>` : '';
+        const textHTML = p.text ? `<div class="post-text">${p.text.replace(/\n/g,'<br>')}</div>` : '';
 
-        const mediaHTML = post.mediaUrl ? (
-          post.mediaType === 'image'
-            ? `<div class="post-media"><img src="${post.mediaUrl}" alt=""></div>`
-            : `<div class="post-media"><video src="${post.mediaUrl}" controls></video></div>`
-        ) : '';
-
-        const captionHTML = post.caption ? `<div class="post-caption">📝 ${post.caption}</div>` : '';
-        const textHTML = post.text ? `<div class="post-text">${post.text.replace(/\n/g,'<br>')}</div>` : '';
-
-        const postHTML = `
+        postsEl.insertAdjacentHTML('beforeend', `
           <div class="feed-post" id="post_${id}">
             <div class="post-header">
               <div class="post-author">
-                <div class="post-author-avatar">${avatarHTML}</div>
+                <div class="post-author-avatar">${avatar}</div>
                 <div>
                   <div class="post-author-name">Elan Teixeira de Araujo</div>
                   <div class="post-author-role">Auxiliar de Movimentação · Forship Engenharia</div>
                 </div>
               </div>
-              <div class="post-time">${timeAgo}</div>
+              <div class="post-time">${time}</div>
             </div>
-            ${textHTML}
-            ${mediaHTML}
-            ${captionHTML}
-            <div class="post-stats" id="stats_${id}"><span>👍 ${post.likes || 0} curtida${post.likes !== 1 ? 's' : ''}</span></div>
+            ${textHTML}${mediaHTML}${captionHTML}
+            <div class="post-stats" id="stats_${id}"><span>👍 ${p.likes||0} curtida${p.likes!==1?'s':''}</span></div>
             <div class="post-reactions">
-              <button class="reaction-btn" onclick="toggleLike(this,'${id}',${post.likes||0})">👍 Curtir</button>
+              <button class="reaction-btn" onclick="toggleLike(this,'${id}',${p.likes||0})">👍 Curtir</button>
               <button class="reaction-btn">💬 Comentar</button>
-              <button class="reaction-btn" onclick="sharePost('${id}')">🔗 Compartilhar</button>
+              <button class="reaction-btn" onclick="sharePost()">🔗 Compartilhar</button>
             </div>
-          </div>`;
+          </div>`);
 
-        postsContainer.insertAdjacentHTML('beforeend', postHTML);
-
-        // Fotos
-        if (post.mediaUrl && post.mediaType === 'image') {
+        if (p.mediaUrl && p.mediaType === 'image') {
           hasPhotos = true;
-          photosContainer.insertAdjacentHTML('beforeend', `
+          photosEl.insertAdjacentHTML('beforeend', `
             <div class="feed-post">
-              <div class="post-media"><img src="${post.mediaUrl}" alt=""></div>
+              <div class="post-media"><img src="${p.mediaUrl}" alt=""></div>
               ${captionHTML}
             </div>`);
         }
       });
 
       if (!hasPhotos) {
-        photosContainer.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📷</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma foto publicada ainda.</div></div>';
+        photosEl.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📷</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma foto publicada ainda.</div></div>';
       }
+    }, (error) => {
+      console.error('Firestore error:', error);
+      document.getElementById('loadingPosts').innerHTML = '❌ Erro ao carregar. Verifique as regras do Firestore.';
     });
   }
 
   // ── LIKE ──
   async function toggleLike(btn, postId, currentLikes) {
     btn.classList.toggle('liked');
-    const newLikes = btn.classList.contains('liked') ? currentLikes + 1 : currentLikes - 1;
+    const newLikes = btn.classList.contains('liked') ? currentLikes + 1 : Math.max(0, currentLikes - 1);
     btn.textContent = btn.classList.contains('liked') ? '👍 Curtido' : '👍 Curtir';
     document.getElementById('stats_' + postId).querySelector('span').textContent = `👍 ${newLikes} curtida${newLikes !== 1 ? 's' : ''}`;
     try {
@@ -910,40 +902,32 @@
     } catch(e) { console.log('Erro ao curtir'); }
   }
 
-  // ── SHARE ──
-  function sharePost(id) {
-    const url = window.location.href;
+  function sharePost() {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(url);
+      navigator.clipboard.writeText(window.location.href);
       showToast('🔗 Link copiado!');
     }
   }
 
-  // ── TIME AGO ──
-  function getTimeAgo(timestamp) {
-    if (!timestamp) return 'Agora';
-    const diff = Date.now() - timestamp;
-    const mins = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    if (mins < 1) return 'Agora';
-    if (mins < 60) return `${mins}min atrás`;
-    if (hours < 24) return `${hours}h atrás`;
-    return `${days}d atrás`;
+  function getTimeAgo(ts) {
+    if (!ts) return 'Agora';
+    const d = Date.now() - ts;
+    const m = Math.floor(d/60000), h = Math.floor(d/3600000), dy = Math.floor(d/86400000);
+    if (m < 1) return 'Agora';
+    if (m < 60) return `${m}min atrás`;
+    if (h < 24) return `${h}h atrás`;
+    return `${dy}d atrás`;
   }
 
-  // ── TOAST ──
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3500);
   }
 
-  // Fechar modal
-  document.getElementById('composerModal').addEventListener('click', function(e) {
-    if (e.target === this) closeComposer();
-  });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeComposer(); });
+  document.getElementById('senhaModal').addEventListener('click', e => { if (e.target === document.getElementById('senhaModal')) closeSenha(); });
+  document.getElementById('composerModal').addEventListener('click', e => { if (e.target === document.getElementById('composerModal')) closeComposer(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSenha(); closeComposer(); } });
 </script>
 </body>
 </html>
