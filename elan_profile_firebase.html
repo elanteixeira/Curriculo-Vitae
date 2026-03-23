@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elan Teixeira — Engenheiro & Analista</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, orderBy, query, onSnapshot, updateDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCPwVdCEpAu8GCxd_rkfnpaDlr93B7vwmU",
+    authDomain: "elan-profile.firebaseapp.com",
+    projectId: "elan-profile",
+    storageBucket: "elan-profile.firebasestorage.app",
+    messagingSenderId: "18139740276",
+    appId: "1:18139740276:web:54fa1d1856fabc46a5b921"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  // Expor para uso global
+  window._db = db;
+  window._storage = storage;
+  window._collection = collection;
+  window._addDoc = addDoc;
+  window._orderBy = orderBy;
+  window._query = query;
+  window._onSnapshot = onSnapshot;
+  window._updateDoc = updateDoc;
+  window._doc = doc;
+  window._getDoc = getDoc;
+  window._setDoc = setDoc;
+  window._ref = ref;
+  window._uploadBytes = uploadBytes;
+  window._getDownloadURL = getDownloadURL;
+
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      loadPosts();
+      loadProfile();
+      document.getElementById('fbStatus').textContent = '🟢 Online';
+      document.getElementById('fbStatus').className = 'fb-status online';
+    }, 1000);
+  });
+</script>
+
+<style>
+  :root {
+    --blue-deep: #0a66c2;
+    --blue-mid: #1e88e5;
+    --blue-glow: rgba(10,102,194,0.18);
+    --gray-900: #1b1f23;
+    --gray-800: #23272e;
+    --gray-700: #2e3440;
+    --gray-600: #4a5568;
+    --gray-400: #8896a5;
+    --gray-200: #e2e8f0;
+    --white: #ffffff;
+    --accent: #00b4d8;
+    --card-bg: #1e2530;
+    --card-border: rgba(30,136,229,0.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gray-900); color: var(--white); min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    position: sticky; top:0; z-index:100;
+    background: rgba(15,18,24,0.95); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%; height: 60px;
+  }
+  .nav-brand { font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem; color:var(--blue-mid); }
+  .nav-links { display:flex; gap:8px; }
+  .nav-links a {
+    color: var(--gray-400); text-decoration:none; font-size:.82rem; font-weight:500;
+    padding: 6px 14px; border-radius:20px; transition: all .2s;
+  }
+  .nav-links a:hover, .nav-links a.active { background: var(--blue-glow); color: var(--blue-mid); }
+  .nav-actions { display:flex; gap:8px; align-items:center; }
+  .btn-nav {
+    padding: 7px 18px; border-radius:20px; font-size:.82rem; font-weight:600;
+    cursor:pointer; border:none; font-family:'DM Sans',sans-serif; transition: all .2s;
+  }
+  .btn-nav.solid { background: var(--blue-deep); color:#fff; }
+  .btn-nav.solid:hover { background: var(--blue-mid); }
+  .fb-status { font-size:.72rem; padding:3px 10px; border-radius:10px; font-weight:500; }
+  .fb-status.online { background:rgba(0,200,100,.15); color:#00c864; border:1px solid rgba(0,200,100,.3); }
+  .fb-status.offline { background:rgba(255,200,0,.15); color:#ffcc00; border:1px solid rgba(255,200,0,.3); }
+
+  /* COVER */
+  .cover-section {
+    position: relative; height: 220px; overflow:hidden;
+    background: linear-gradient(135deg, #0a3d6e 0%, #0a66c2 50%, #005fa3 100%);
+  }
+  .cover-section img.cover-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .cover-pattern {
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 0, transparent 50%);
+    background-size: 20px 20px;
+  }
+  .cover-edit-btn {
+    position:absolute; top:16px; right:16px;
+    background: rgba(0,0,0,.45); color:#fff; border:1.5px solid rgba(255,255,255,.3);
+    border-radius:8px; padding:7px 16px; font-size:.8rem; cursor:pointer;
+    font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; transition: all .2s; z-index:2;
+  }
+  .cover-edit-btn:hover { background: rgba(0,0,0,.65); }
+  #cover-upload { display:none; }
+
+  /* PROFILE */
+  .profile-header {
+    background: var(--gray-800); border-bottom: 1px solid var(--card-border);
+    padding: 0 5% 24px;
+  }
+  .avatar-wrap { position: relative; display:inline-block; margin-top: -60px; }
+  .avatar {
+    width:120px; height:120px; border-radius:50%;
+    border: 4px solid var(--gray-800);
+    background: linear-gradient(135deg, var(--blue-deep), var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-size:2.8rem; font-weight:800; color:#fff;
+    overflow:hidden; cursor:pointer;
+  }
+  .avatar img { width:100%; height:100%; object-fit:cover; display:none; }
+  .avatar-cam {
+    position:absolute; bottom:4px; right:4px;
+    background:var(--blue-deep); border:2px solid var(--gray-800);
+    border-radius:50%; width:30px; height:30px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.9rem; z-index:2;
+  }
+  #avatar-upload { display:none; }
+  .profile-meta { margin-top:14px; }
+  .profile-name { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; }
+  .profile-title { color: var(--blue-mid); font-size:.92rem; font-weight:500; margin-top:3px; }
+  .profile-location { color:var(--gray-400); font-size:.82rem; margin-top:4px; }
+  .profile-bio { color:var(--gray-200); font-size:.88rem; line-height:1.6; margin-top:10px; max-width:600px; }
+  .profile-actions { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  .btn-primary {
+    background:var(--blue-deep); color:#fff; border:none; padding:9px 22px;
+    border-radius:22px; font-size:.85rem; font-weight:600; cursor:pointer;
+    font-family:'DM Sans',sans-serif; transition: all .2s;
+  }
+  .btn-primary:hover { background: var(--blue-mid); transform: translateY(-1px); }
+  .btn-secondary {
+    background:transparent; color:var(--blue-mid); border:1.5px solid var(--blue-mid);
+    padding:9px 22px; border-radius:22px; font-size:.85rem; font-weight:600; cursor:pointer;
+    font-family:'DM Sans',sans-serif; transition: all .2s;
+  }
+  .btn-secondary:hover { background: var(--blue-glow); }
+
+  /* LAYOUT */
+  .main-layout {
+    display: grid; grid-template-columns: 300px 1fr;
+    gap: 20px; max-width: 1100px; margin: 24px auto; padding: 0 5%;
+  }
+  .card {
+    background: var(--card-bg); border:1px solid var(--card-border);
+    border-radius:14px; padding:20px; margin-bottom:16px;
+  }
+  .card-title {
+    font-family:'Syne',sans-serif; font-size:.92rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--gray-400); margin-bottom:14px;
+  }
+
+  /* SKILLS */
+  .skill-item { margin-bottom:14px; }
+  .skill-label { display:flex; justify-content:space-between; font-size:.83rem; margin-bottom:5px; }
+  .skill-label span:first-child { color:var(--white); font-weight:500; }
+  .skill-label span:last-child { color:var(--blue-mid); font-size:.78rem; }
+  .skill-bar { height:5px; background: var(--gray-700); border-radius:3px; overflow:hidden; }
+  .skill-fill { height:100%; border-radius:3px; background: linear-gradient(90deg, var(--blue-deep), var(--accent)); }
+
+  /* EDU */
+  .edu-item { display:flex; gap:12px; margin-bottom:14px; }
+  .edu-icon {
+    width:38px; height:38px; border-radius:8px; flex-shrink:0;
+    background: var(--blue-glow); border:1px solid var(--card-border);
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+  }
+  .edu-info h4 { font-size:.87rem; font-weight:600; }
+  .edu-info p { color:var(--gray-400); font-size:.78rem; margin-top:2px; }
+
+  /* CONTACT */
+  .contact-link {
+    display:flex; align-items:center; gap:10px; padding:9px 0;
+    border-bottom:1px solid var(--gray-700); color:var(--gray-200);
+    text-decoration:none; font-size:.84rem; transition: color .2s;
+  }
+  .contact-link:last-child { border-bottom:none; }
+  .contact-link:hover { color:var(--blue-mid); }
+
+  /* CREATE POST */
+  .create-post {
+    background: var(--card-bg); border:1px solid var(--card-border);
+    border-radius:14px; padding:16px; margin-bottom:16px;
+  }
+  .create-post-top { display:flex; align-items:center; gap:12px; }
+  .mini-avatar {
+    width:42px; height:42px; border-radius:50%;
+    background: linear-gradient(135deg, var(--blue-deep), var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.9rem; flex-shrink:0; overflow:hidden;
+  }
+  .mini-avatar img { width:100%; height:100%; object-fit:cover; display:none; border-radius:50%; }
+  .post-input {
+    flex:1; background: var(--gray-700); border:1px solid var(--card-border);
+    border-radius:22px; padding:10px 18px; color:var(--gray-400); font-size:.86rem;
+    cursor:pointer; transition: all .2s; font-family:'DM Sans',sans-serif;
+  }
+  .post-input:hover { background:var(--gray-600); color:var(--white); border-color:var(--blue-mid); }
+  .post-actions { display:flex; gap:6px; margin-top:12px; padding-top:12px; border-top:1px solid var(--gray-700); flex-wrap:wrap; }
+  .post-action-btn {
+    background:transparent; border:none; color:var(--gray-400);
+    padding:7px 14px; border-radius:8px; font-size:.8rem; cursor:pointer;
+    font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:5px; transition: all .2s;
+  }
+  .post-action-btn:hover { background:var(--gray-700); color:var(--blue-mid); }
+
+  /* MODAL */
+  .modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
+    z-index:200; align-items:center; justify-content:center; padding:16px;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background: var(--gray-800); border:1px solid var(--card-border);
+    border-radius:16px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto;
+  }
+  .modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; border-bottom:1px solid var(--card-border);
+  }
+  .modal-header h3 { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; }
+  .modal-close { background:none; border:none; color:var(--gray-400); font-size:1.5rem; cursor:pointer; line-height:1; }
+  .modal-close:hover { color:#fff; }
+  .modal-body { padding:20px; }
+  .composer-textarea {
+    width:100%; background:transparent; border:none; color:var(--white);
+    font-family:'DM Sans',sans-serif; font-size:.95rem; line-height:1.7;
+    resize:none; outline:none; min-height:120px;
+  }
+  .composer-textarea::placeholder { color:var(--gray-600); }
+  .composer-preview { margin-top:12px; border-radius:10px; overflow:hidden; display:none; position:relative; }
+  .composer-preview img, .composer-preview video { width:100%; max-height:300px; object-fit:cover; display:block; }
+  .remove-media {
+    position:absolute; top:8px; right:8px;
+    background:rgba(0,0,0,.6); border:none; color:#fff; border-radius:50%;
+    width:28px; height:28px; cursor:pointer; font-size:1rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .composer-caption {
+    width:100%; background:var(--gray-700); border:1px solid var(--card-border);
+    border-radius:8px; padding:8px 12px; color:var(--white); font-family:'DM Sans',sans-serif;
+    font-size:.84rem; margin-top:10px; outline:none; resize:none; display:none;
+  }
+  .composer-caption::placeholder { color:var(--gray-600); }
+  .composer-footer {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; border-top:1px solid var(--card-border);
+  }
+  .composer-tools { display:flex; gap:4px; }
+  .tool-btn {
+    background:none; border:none; color:var(--gray-400); font-size:1.2rem;
+    width:36px; height:36px; border-radius:8px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition: all .2s;
+  }
+  .tool-btn:hover { background:var(--gray-700); color:var(--blue-mid); }
+  #media-upload { display:none; }
+  .btn-post {
+    background:var(--blue-deep); color:#fff; border:none; padding:9px 24px;
+    border-radius:22px; font-size:.85rem; font-weight:600; cursor:pointer;
+    font-family:'DM Sans',sans-serif; transition: all .2s; display:flex; align-items:center; gap:6px;
+  }
+  .btn-post:hover { background:var(--blue-mid); }
+  .btn-post:disabled { opacity:.4; cursor:not-allowed; }
+
+  /* FEED POST */
+  .feed-post {
+    background: var(--card-bg); border:1px solid var(--card-border);
+    border-radius:14px; margin-bottom:16px; overflow:hidden;
+    animation: slideUp .4s ease;
+  }
+  @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .post-header { display:flex; align-items:center; justify-content:space-between; padding:16px; }
+  .post-author { display:flex; align-items:center; gap:10px; }
+  .post-author-avatar {
+    width:42px; height:42px; border-radius:50%;
+    background: linear-gradient(135deg, var(--blue-deep), var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif; font-weight:800; font-size:.9rem; overflow:hidden; flex-shrink:0;
+  }
+  .post-author-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .post-author-name { font-weight:600; font-size:.88rem; }
+  .post-author-role { color:var(--gray-400); font-size:.76rem; margin-top:1px; }
+  .post-time { color:var(--gray-600); font-size:.75rem; }
+  .post-text { padding:0 16px 14px; font-size:.88rem; line-height:1.7; color:var(--gray-200); }
+  .post-media img, .post-media video { width:100%; max-height:420px; object-fit:cover; display:block; }
+  .post-caption { padding:10px 16px; font-size:.82rem; color:var(--gray-400); font-style:italic; border-bottom:1px solid var(--gray-700); }
+  .post-stats { padding:8px 16px; display:flex; gap:16px; font-size:.76rem; color:var(--gray-600); }
+  .post-reactions { padding:8px; display:flex; border-top:1px solid var(--gray-700); }
+  .reaction-btn {
+    flex:1; background:none; border:none; color:var(--gray-400); padding:8px 4px;
+    border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:.8rem;
+    display:flex; align-items:center; justify-content:center; gap:5px; transition: all .2s;
+  }
+  .reaction-btn:hover { background:var(--gray-700); color:var(--blue-mid); }
+  .reaction-btn.liked { color: var(--blue-mid); font-weight:600; }
+
+  /* TABS */
+  .section-tab { display:flex; border-bottom:1px solid var(--card-border); margin-bottom:20px; }
+  .tab-btn {
+    background:none; border:none; color:var(--gray-400); padding:12px 20px;
+    font-family:'DM Sans',sans-serif; font-size:.86rem; font-weight:500; cursor:pointer;
+    border-bottom:2px solid transparent; transition: all .2s; margin-bottom:-1px;
+  }
+  .tab-btn.active { color:var(--blue-mid); border-bottom-color:var(--blue-mid); }
+
+  /* EXPERIENCE */
+  .experience-item {
+    display:flex; gap:14px; margin-bottom:20px; padding-bottom:20px;
+    border-bottom:1px solid var(--gray-700);
+  }
+  .experience-item:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .exp-logo {
+    width:46px; height:46px; border-radius:10px; flex-shrink:0;
+    background: linear-gradient(135deg, #003d7a, #0a66c2);
+    display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+  }
+  .exp-info h4 { font-size:.9rem; font-weight:600; }
+  .exp-info .exp-company { color:var(--blue-mid); font-size:.83rem; margin-top:2px; }
+  .exp-info .exp-period { color:var(--gray-400); font-size:.78rem; margin-top:3px; }
+  .exp-info .exp-desc { color:var(--gray-200); font-size:.83rem; line-height:1.6; margin-top:8px; }
+
+  /* PAGES */
+  .page-section { display:none; }
+  .page-section.active { display:block; }
+
+  /* LOADING */
+  .loading {
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    padding:40px; color:var(--gray-400); font-size:.88rem;
+  }
+  .spinner {
+    width:20px; height:20px; border:2px solid var(--gray-700);
+    border-top-color:var(--blue-mid); border-radius:50%;
+    animation: spin .6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  .toast {
+    position:fixed; bottom:24px; right:24px; z-index:300;
+    background:var(--blue-deep); color:#fff; padding:12px 20px; border-radius:10px;
+    font-size:.85rem; font-weight:500; transform:translateY(80px); opacity:0;
+    transition: all .3s; pointer-events:none; max-width:320px;
+  }
+  .toast.show { transform:translateY(0); opacity:1; }
+
+  /* TAGS */
+  .tag {
+    background:var(--blue-glow); border:1px solid var(--card-border);
+    padding:5px 14px; border-radius:20px; font-size:.8rem; color:var(--blue-mid); display:inline-block;
+  }
+  .tags-wrap { display:flex; flex-wrap:wrap; gap:8px; }
+
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--gray-900); }
+  ::-webkit-scrollbar-thumb { background:var(--gray-700); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--blue-deep); }
+
+  @media(max-width:768px) {
+    .main-layout { grid-template-columns:1fr; }
+    .nav-links { display:none; }
+    .cover-section { height:160px; }
+    .avatar { width:90px; height:90px; font-size:2rem; }
+    .avatar-wrap { margin-top:-45px; }
+    .profile-name { font-size:1.3rem; }
+  }
+  @media(max-width:480px) {
+    nav { padding:0 4%; }
+    .main-layout { padding:0 4%; }
+    .profile-header { padding:0 4% 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">ET.</div>
+  <div class="nav-links">
+    <a href="#" class="active" onclick="showPage('feed',this)">Início</a>
+    <a href="#" onclick="showPage('curriculum',this)">Currículo</a>
+    <a href="#" onclick="showPage('about',this)">Sobre</a>
+  </div>
+  <div class="nav-actions">
+    <span class="fb-status offline" id="fbStatus">⏳ Conectando...</span>
+    <button class="btn-nav solid" onclick="openComposer()">+ Publicar</button>
+  </div>
+</nav>
+
+<!-- COVER -->
+<div class="cover-section" id="coverSection">
+  <div class="cover-pattern" id="coverPattern"></div>
+  <img class="cover-img" id="coverImg" src="" alt="" style="display:none">
+  <button class="cover-edit-btn" onclick="document.getElementById('cover-upload').click()">📷 Alterar capa</button>
+  <input type="file" id="cover-upload" accept="image/*" onchange="changeCover(event)">
+</div>
+
+<!-- PROFILE -->
+<div class="profile-header">
+  <div class="avatar-wrap">
+    <div class="avatar" id="avatarDiv" onclick="document.getElementById('avatar-upload').click()">
+      <img id="avatarImg" src="" alt="">
+      <span id="avatarInitials">ET</span>
+    </div>
+    <div class="avatar-cam" onclick="document.getElementById('avatar-upload').click()">📷</div>
+    <input type="file" id="avatar-upload" accept="image/*" onchange="changeAvatar(event)">
+  </div>
+  <div class="profile-meta">
+    <div class="profile-name">Elan Teixeira de Araujo</div>
+    <div class="profile-title">Auxiliar de Movimentação · Engenheiro de Produção · Analista de Sistemas</div>
+    <div class="profile-location">📍 Bahia, Brasil</div>
+    <div class="profile-bio">Profissional com dupla formação em Engenharia de Produção Mecânica e Análise e Desenvolvimento de Sistemas. Habilidades em gestão de projetos, programação e ferramentas de engenharia. Em transição para novas oportunidades alinhadas ao meu perfil técnico.</div>
+    <div class="profile-actions">
+      <button class="btn-primary" onclick="openComposer()">✏️ Nova publicação</button>
+      <button class="btn-secondary" onclick="showPage('curriculum', document.querySelectorAll('.nav-links a')[1])">📄 Ver currículo</button>
+      <a href="https://linkedin.com/in/elan-teixeira" target="_blank"><button class="btn-secondary">🔗 LinkedIn</button></a>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-layout">
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="card">
+      <div class="card-title">Ferramentas & Skills</div>
+      <div class="skill-item">
+        <div class="skill-label"><span>Project Libre / MS Project</span><span>Avançado</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:88%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>Primavera P6</span><span>Intermediário</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:65%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>Microsoft Excel</span><span>Avançado</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:90%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>SQL</span><span>Intermediário</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:70%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label"><span>Python</span><span>Intermediário</span></div>
+        <div class="skill-bar"><div class="skill-fill" style="width:68%"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Formação</div>
+      <div class="edu-item">
+        <div class="edu-icon">🎓</div>
+        <div class="edu-info"><h4>Engenharia de Produção Mecânica</h4><p>Graduação · Concluído</p></div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-icon">💻</div>
+        <div class="edu-info"><h4>Análise e Desenvolvimento de Sistemas</h4><p>Graduação · Concluído</p></div>
+      </div>
+      <div class="edu-item">
+        <div class="edu-icon">🏫</div>
+        <div class="edu-info"><h4>Curso Técnico</h4><p>Técnico · Concluído</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Contato</div>
+      <a class="contact-link" href="https://linkedin.com/in/elan-teixeira" target="_blank">💼 LinkedIn</a>
+      <a class="contact-link" href="mailto:elan@email.com">✉️ elan@email.com</a>
+      <a class="contact-link" href="#">📍 Bahia, Brasil</a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <!-- FEED -->
+    <div class="page-section active" id="page-feed">
+      <div class="section-tab">
+        <button class="tab-btn active" onclick="switchTab(this,'tab-posts','tab-photos')">Publicações</button>
+        <button class="tab-btn" onclick="switchTab(this,'tab-photos','tab-posts')">Fotos</button>
+      </div>
+
+      <div class="create-post">
+        <div class="create-post-top">
+          <div class="mini-avatar" id="miniAvatar">
+            <img id="miniAvatarImg" src="" alt="">
+            <span id="miniAvatarInit">ET</span>
+          </div>
+          <div class="post-input" onclick="openComposer()">O que você quer compartilhar, Elan?</div>
+        </div>
+        <div class="post-actions">
+          <button class="post-action-btn" onclick="openComposerWithMedia()">📷 Foto / Vídeo</button>
+          <button class="post-action-btn" onclick="openComposer()">✏️ Texto</button>
+        </div>
+      </div>
+
+      <div id="tab-posts">
+        <div class="loading" id="loadingPosts">
+          <div class="spinner"></div> Carregando publicações...
+        </div>
+      </div>
+
+      <div id="tab-photos" style="display:none;">
+        <div class="loading" id="loadingPhotos">
+          <div class="spinner"></div> Carregando fotos...
+        </div>
+      </div>
+    </div>
+
+    <!-- CURRÍCULO -->
+    <div class="page-section" id="page-curriculum">
+      <div class="card">
+        <div class="card-title">Experiência Profissional</div>
+        <div class="experience-item">
+          <div class="exp-logo">⚙️</div>
+          <div class="exp-info">
+            <h4>Auxiliar de Movimentação de Cargas</h4>
+            <div class="exp-company">Forship Engenharia</div>
+            <div class="exp-period">📅 Atual · Bahia, Brasil</div>
+            <div class="exp-desc">Responsável pela movimentação e controle de cargas em ambiente de engenharia. Aplicação de conhecimentos técnicos no planejamento e execução de operações logísticas.</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Formação Acadêmica</div>
+        <div class="experience-item">
+          <div class="exp-logo">🎓</div>
+          <div class="exp-info">
+            <h4>Engenharia de Produção Mecânica</h4>
+            <div class="exp-company">Graduação · Concluído</div>
+            <div class="exp-desc">Formação em engenharia de produção com ênfase em sistemas mecânicos, gestão de projetos, qualidade e processos industriais.</div>
+          </div>
+        </div>
+        <div class="experience-item">
+          <div class="exp-logo">💻</div>
+          <div class="exp-info">
+            <h4>Análise e Desenvolvimento de Sistemas</h4>
+            <div class="exp-company">Graduação · Concluído</div>
+            <div class="exp-desc">Conhecimentos em desenvolvimento de software, banco de dados SQL, lógica de programação e Python.</div>
+          </div>
+        </div>
+        <div class="experience-item">
+          <div class="exp-logo">🏫</div>
+          <div class="exp-info">
+            <h4>Curso Técnico</h4>
+            <div class="exp-company">Técnico · Concluído</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Competências</div>
+        <div class="tags-wrap">
+          <span class="tag">Project Libre</span>
+          <span class="tag">MS Project</span>
+          <span class="tag">Primavera P6</span>
+          <span class="tag">SQL</span>
+          <span class="tag">Python</span>
+          <span class="tag">Excel Avançado</span>
+          <span class="tag">Gestão de Projetos</span>
+          <span class="tag">Eng. de Produção</span>
+          <span class="tag">Movimentação de Cargas</span>
+          <span class="tag">Análise de Sistemas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOBRE -->
+    <div class="page-section" id="page-about">
+      <div class="card">
+        <div class="card-title">Sobre mim</div>
+        <p style="font-size:.9rem;line-height:1.8;color:var(--gray-200)">
+          Sou <strong>Elan Teixeira de Araujo</strong>, profissional com dupla formação: <strong>Engenharia de Produção Mecânica</strong> e <strong>Análise e Desenvolvimento de Sistemas</strong>, além de Curso Técnico.<br><br>
+          Atualmente atuo na <strong>Forship Engenharia</strong> como Auxiliar de Movimentação de Cargas, aplicando diariamente conhecimentos técnicos em operações reais.<br><br>
+          Meu objetivo é migrar para áreas que aproveitem meu perfil técnico híbrido — unindo engenharia, gestão de projetos e tecnologia.<br><br>
+          Domino <strong>Project Libre, MS Project, Primavera P6, Excel, SQL e Python</strong> — o conjunto completo de um engenheiro moderno.
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- COMPOSER MODAL -->
+<div class="modal-overlay" id="composerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nova Publicação</h3>
+      <button class="modal-close" onclick="closeComposer()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div class="mini-avatar" id="composerAvatar">
+          <img id="composerAvatarImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
+          <span id="composerAvatarInit">ET</span>
+        </div>
+        <div style="flex:1">
+          <textarea class="composer-textarea" id="postText" placeholder="O que está acontecendo no seu dia, Elan?" rows="4"></textarea>
+          <div class="composer-preview" id="composerPreview">
+            <img id="previewImg" src="" alt="" style="display:none">
+            <video id="previewVideo" controls style="display:none;width:100%;"></video>
+            <button class="remove-media" onclick="removeMedia()">×</button>
+          </div>
+          <textarea class="composer-caption" id="postCaption" placeholder="Adicione uma legenda para a mídia..." rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="composer-footer">
+      <div class="composer-tools">
+        <button class="tool-btn" title="Foto/Vídeo" onclick="document.getElementById('media-upload').click()">📷</button>
+        <button class="tool-btn" title="Hashtag">#</button>
+      </div>
+      <button class="btn-post" id="publishBtn" onclick="publishPost()">
+        <span id="publishBtnText">Publicar</span>
+      </button>
+    </div>
+    <input type="file" id="media-upload" accept="image/*,video/*" onchange="previewMedia(event)">
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let avatarSrc = '';
+  let mediaFile = null;
+  let mediaType = '';
+  let currentTab = 'tab-posts';
+
+  // ── NAVIGATION ──
+  function showPage(page, el) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    if (el) el.classList.add('active');
+  }
+
+  function switchTab(btn, showId, hideId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(showId).style.display = 'block';
+    document.getElementById(hideId).style.display = 'none';
+    currentTab = showId;
+  }
+
+  // ── PROFILE LOAD ──
+  async function loadProfile() {
+    if (!window._db) return;
+    try {
+      const docSnap = await window._getDoc(window._doc(window._db, 'profile', 'main'));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.avatarUrl) setAvatarUI(data.avatarUrl);
+        if (data.coverUrl) setCoverUI(data.coverUrl);
+      }
+    } catch(e) { console.log('Perfil ainda não salvo'); }
+  }
+
+  // ── AVATAR ──
+  async function changeAvatar(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast('⏳ Enviando foto de perfil...');
+    try {
+      const storageRef = window._ref(window._storage, 'profile/avatar_' + Date.now());
+      await window._uploadBytes(storageRef, file);
+      const url = await window._getDownloadURL(storageRef);
+      avatarSrc = url;
+      setAvatarUI(url);
+      await window._setDoc(window._doc(window._db, 'profile', 'main'), { avatarUrl: url }, { merge: true });
+      showToast('✅ Foto de perfil atualizada!');
+    } catch(e) {
+      // fallback local
+      const url = URL.createObjectURL(file);
+      avatarSrc = url;
+      setAvatarUI(url);
+      showToast('✅ Foto atualizada localmente!');
+    }
+  }
+
+  function setAvatarUI(url) {
+    avatarSrc = url;
+    ['avatarImg','miniAvatarImg','composerAvatarImg'].forEach(id => {
+      const img = document.getElementById(id);
+      if (img) { img.src = url; img.style.display = 'block'; }
+    });
+    ['avatarInitials','miniAvatarInit','composerAvatarInit'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  }
+
+  // ── COVER ──
+  async function changeCover(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast('⏳ Enviando foto de capa...');
+    try {
+      const storageRef = window._ref(window._storage, 'profile/cover_' + Date.now());
+      await window._uploadBytes(storageRef, file);
+      const url = await window._getDownloadURL(storageRef);
+      setCoverUI(url);
+      await window._setDoc(window._doc(window._db, 'profile', 'main'), { coverUrl: url }, { merge: true });
+      showToast('✅ Foto de capa atualizada!');
+    } catch(e) {
+      const url = URL.createObjectURL(file);
+      setCoverUI(url);
+      showToast('✅ Capa atualizada localmente!');
+    }
+  }
+
+  function setCoverUI(url) {
+    const img = document.getElementById('coverImg');
+    img.src = url; img.style.display = 'block';
+    document.getElementById('coverPattern').style.display = 'none';
+  }
+
+  // ── COMPOSER ──
+  function openComposer() {
+    document.getElementById('composerModal').classList.add('open');
+    setTimeout(() => document.getElementById('postText').focus(), 100);
+  }
+  function openComposerWithMedia() {
+    openComposer();
+    setTimeout(() => document.getElementById('media-upload').click(), 200);
+  }
+  function closeComposer() {
+    document.getElementById('composerModal').classList.remove('open');
+    document.getElementById('postText').value = '';
+    document.getElementById('postCaption').value = '';
+    removeMedia();
+  }
+
+  function previewMedia(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    mediaFile = file;
+    const url = URL.createObjectURL(file);
+    const preview = document.getElementById('composerPreview');
+    const img = document.getElementById('previewImg');
+    const vid = document.getElementById('previewVideo');
+    preview.style.display = 'block';
+    document.getElementById('postCaption').style.display = 'block';
+    if (file.type.startsWith('image/')) {
+      mediaType = 'image'; img.src = url; img.style.display = 'block'; vid.style.display = 'none';
+    } else {
+      mediaType = 'video'; vid.src = url; vid.style.display = 'block'; img.style.display = 'none';
+    }
+  }
+
+  function removeMedia() {
+    mediaFile = null; mediaType = '';
+    document.getElementById('composerPreview').style.display = 'none';
+    document.getElementById('postCaption').style.display = 'none';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewVideo').src = '';
+    document.getElementById('media-upload').value = '';
+  }
+
+  // ── PUBLISH ──
+  async function publishPost() {
+    const text = document.getElementById('postText').value.trim();
+    const caption = document.getElementById('postCaption').value.trim();
+    if (!text && !mediaFile) { showToast('⚠️ Escreva algo ou adicione uma mídia!'); return; }
+
+    const btn = document.getElementById('publishBtn');
+    const btnText = document.getElementById('publishBtnText');
+    btn.disabled = true; btnText.textContent = 'Publicando...';
+
+    try {
+      let mediaUrl = '';
+      if (mediaFile) {
+        showToast('⏳ Enviando mídia...');
+        const storageRef = window._ref(window._storage, 'posts/' + Date.now() + '_' + mediaFile.name);
+        await window._uploadBytes(storageRef, mediaFile);
+        mediaUrl = await window._getDownloadURL(storageRef);
+      }
+
+      const postData = {
+        text,
+        caption,
+        mediaUrl,
+        mediaType,
+        avatarUrl: avatarSrc,
+        likes: 0,
+        createdAt: new Date().toISOString(),
+        timestamp: Date.now()
+      };
+
+      await window._addDoc(window._collection(window._db, 'posts'), postData);
+      closeComposer();
+      showToast('✅ Publicado com sucesso!');
+    } catch(e) {
+      console.error(e);
+      showToast('❌ Erro ao publicar. Verifique sua conexão.');
+    }
+
+    btn.disabled = false; btnText.textContent = 'Publicar';
+  }
+
+  // ── LOAD POSTS ──
+  function loadPosts() {
+    if (!window._db) { setTimeout(loadPosts, 1000); return; }
+
+    const q = window._query(window._collection(window._db, 'posts'), window._orderBy('timestamp', 'desc'));
+
+    window._onSnapshot(q, (snapshot) => {
+      document.getElementById('loadingPosts').style.display = 'none';
+      document.getElementById('loadingPhotos').style.display = 'none';
+
+      const postsContainer = document.getElementById('tab-posts');
+      const photosContainer = document.getElementById('tab-photos');
+
+      // Limpar posts antigos (manter loading)
+      postsContainer.innerHTML = '';
+      photosContainer.innerHTML = '';
+
+      if (snapshot.empty) {
+        postsContainer.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📝</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma publicação ainda.<br>Clique em <strong style="color:var(--blue-mid)">+ Publicar</strong> para começar!</div></div>';
+        photosContainer.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📷</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma foto ainda.</div></div>';
+        return;
+      }
+
+      let hasPhotos = false;
+      snapshot.forEach(docSnap => {
+        const post = docSnap.data();
+        const id = docSnap.id;
+        const timeAgo = getTimeAgo(post.timestamp);
+        const avatarHTML = post.avatarUrl
+          ? `<img src="${post.avatarUrl}" alt="">`
+          : 'ET';
+
+        const mediaHTML = post.mediaUrl ? (
+          post.mediaType === 'image'
+            ? `<div class="post-media"><img src="${post.mediaUrl}" alt=""></div>`
+            : `<div class="post-media"><video src="${post.mediaUrl}" controls></video></div>`
+        ) : '';
+
+        const captionHTML = post.caption ? `<div class="post-caption">📝 ${post.caption}</div>` : '';
+        const textHTML = post.text ? `<div class="post-text">${post.text.replace(/\n/g,'<br>')}</div>` : '';
+
+        const postHTML = `
+          <div class="feed-post" id="post_${id}">
+            <div class="post-header">
+              <div class="post-author">
+                <div class="post-author-avatar">${avatarHTML}</div>
+                <div>
+                  <div class="post-author-name">Elan Teixeira de Araujo</div>
+                  <div class="post-author-role">Auxiliar de Movimentação · Forship Engenharia</div>
+                </div>
+              </div>
+              <div class="post-time">${timeAgo}</div>
+            </div>
+            ${textHTML}
+            ${mediaHTML}
+            ${captionHTML}
+            <div class="post-stats" id="stats_${id}"><span>👍 ${post.likes || 0} curtida${post.likes !== 1 ? 's' : ''}</span></div>
+            <div class="post-reactions">
+              <button class="reaction-btn" onclick="toggleLike(this,'${id}',${post.likes||0})">👍 Curtir</button>
+              <button class="reaction-btn">💬 Comentar</button>
+              <button class="reaction-btn" onclick="sharePost('${id}')">🔗 Compartilhar</button>
+            </div>
+          </div>`;
+
+        postsContainer.insertAdjacentHTML('beforeend', postHTML);
+
+        // Fotos
+        if (post.mediaUrl && post.mediaType === 'image') {
+          hasPhotos = true;
+          photosContainer.insertAdjacentHTML('beforeend', `
+            <div class="feed-post">
+              <div class="post-media"><img src="${post.mediaUrl}" alt=""></div>
+              ${captionHTML}
+            </div>`);
+        }
+      });
+
+      if (!hasPhotos) {
+        photosContainer.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📷</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma foto publicada ainda.</div></div>';
+      }
+    });
+  }
+
+  // ── LIKE ──
+  async function toggleLike(btn, postId, currentLikes) {
+    btn.classList.toggle('liked');
+    const newLikes = btn.classList.contains('liked') ? currentLikes + 1 : currentLikes - 1;
+    btn.textContent = btn.classList.contains('liked') ? '👍 Curtido' : '👍 Curtir';
+    document.getElementById('stats_' + postId).querySelector('span').textContent = `👍 ${newLikes} curtida${newLikes !== 1 ? 's' : ''}`;
+    try {
+      await window._updateDoc(window._doc(window._db, 'posts', postId), { likes: newLikes });
+    } catch(e) { console.log('Erro ao curtir'); }
+  }
+
+  // ── SHARE ──
+  function sharePost(id) {
+    const url = window.location.href;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      showToast('🔗 Link copiado!');
+    }
+  }
+
+  // ── TIME AGO ──
+  function getTimeAgo(timestamp) {
+    if (!timestamp) return 'Agora';
+    const diff = Date.now() - timestamp;
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 1) return 'Agora';
+    if (mins < 60) return `${mins}min atrás`;
+    if (hours < 24) return `${hours}h atrás`;
+    return `${days}d atrás`;
+  }
+
+  // ── TOAST ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  // Fechar modal
+  document.getElementById('composerModal').addEventListener('click', function(e) {
+    if (e.target === this) closeComposer();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeComposer(); });
+</script>
+</body>
+</html>
