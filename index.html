@@ -237,7 +237,7 @@
     <div class="card">
       <div class="card-title">Contato</div>
       <a class="contact-link" href="https://linkedin.com/in/elan-teixeira" target="_blank">💼 LinkedIn</a>
-      <a class="contact-link" href="mailto:lanteixeirad@gmail.com">✉️ lanteixeirad@gmail.com</a>
+      <a class="contact-link" href="/cdn-cgi/l/email-protection#a9c5c8c7ddccc0d1ccc0dbc8cde9cec4c8c0c587cac6c4">✉️ <span class="__cf_email__" data-cfemail="583439362c3d31203d312a393c183f35393134763b3735">[email&#160;protected]</span></a>
       <a class="contact-link" href="#">📍 Bahia, Brasil</a>
     </div>
   </aside>
@@ -349,7 +349,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   var avatarSrc = '';
   var mediaFile = null;
   var mediaType = '';
@@ -530,18 +530,21 @@
 
   // CARREGAR POSTS
   function carregarPosts() {
-    db.collection('posts').orderBy('timestamp','desc').onSnapshot(function(snapshot) {
+    db.collection('posts').onSnapshot(function(snapshot) {
       var postsEl = document.getElementById('tab-posts');
       var photosEl = document.getElementById('tab-photos');
       postsEl.innerHTML = '';
       photosEl.innerHTML = '';
-      if (snapshot.empty) {
+      var docs = [];
+      snapshot.forEach(function(docSnap){ docs.push(docSnap); });
+      docs.sort(function(a,b){ return (b.data().timestamp||0) - (a.data().timestamp||0); });
+      if (docs.length === 0) {
         postsEl.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📝</div><div style="color:var(--gray-400);font-size:.88rem">Nenhuma publicação ainda.<br>Clique em <strong style="color:var(--blue-mid)">+ Publicar</strong> para começar!</div></div>';
         photosEl.innerHTML = '<div class="card" style="text-align:center;padding:40px 20px"><div style="font-size:3rem;margin-bottom:12px">📷</div><div style="color:var(--gray-400)">Nenhuma foto ainda.</div></div>';
         return;
       }
       var hasPhotos = false;
-      snapshot.forEach(function(docSnap) {
+      docs.forEach(function(docSnap) {
         var p = docSnap.data(); var id = docSnap.id;
         var avatar = p.avatarUrl ? '<img src="'+p.avatarUrl+'" alt="">' : 'ET';
         var mediaHTML = p.mediaUrl ? (p.mediaType==='image'
@@ -595,8 +598,4 @@
   }
 
   document.getElementById('senhaModal').addEventListener('click',function(e){ if(e.target===this) fecharSenha(); });
-  document.getElementById('composerModal').addEventListener('click',function(e){ if(e.target===this) fecharComposer(); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ fecharSenha(); fecharComposer(); } });
-</script>
-</body>
-</html>
+  document.g
