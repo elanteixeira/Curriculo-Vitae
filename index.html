@@ -9,8 +9,6 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, addDoc, orderBy, query, onSnapshot, updateDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-
   const firebaseConfig = {
     apiKey: "AIzaSyCPwVdCEpAu8GCxd_rkfnpaDlr93B7vwmU",
     authDomain: "elan-profile.firebaseapp.com",
@@ -23,10 +21,8 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
 
   window._db = db;
-  window._storage = storage;
   window._collection = collection;
   window._addDoc = addDoc;
   window._orderBy = orderBy;
@@ -36,10 +32,21 @@
   window._doc = doc;
   window._getDoc = getDoc;
   window._setDoc = setDoc;
-  window._ref = ref;
-  window._uploadBytes = uploadBytes;
-  window._getDownloadURL = getDownloadURL;
   window._fbReady = false;
+
+  // Upload via Cloudinary
+  window.uploadToCloudinary = async function(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'elan_upload');
+    const res = await fetch('https://api.cloudinary.com/v1_1/durb9y5pm/auto/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data.secure_url) return data.secure_url;
+    throw new Error(data.error?.message || 'Erro no upload');
+  };
 
   window.addEventListener('load', () => {
     setTimeout(() => {
@@ -480,7 +487,7 @@
     <div class="card">
       <div class="card-title">Contato</div>
       <a class="contact-link" href="https://linkedin.com/in/elan-teixeira" target="_blank">💼 LinkedIn</a>
-      <a class="contact-link" href="mailto:elan@email.com">✉️ elan@email.com</a>
+      <a class="contact-link" href="/cdn-cgi/l/email-protection#345158555a745159555d581a575b59">✉️ <span class="__cf_email__" data-cfemail="70151c111e30151d11191c5e131f1d">[email&#160;protected]</span></a>
       <a class="contact-link" href="#">📍 Bahia, Brasil</a>
     </div>
   </aside>
@@ -639,7 +646,7 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   let avatarSrc = '';
   let mediaFile = null;
   let mediaType = '';
@@ -703,9 +710,7 @@
     const file = e.target.files[0]; if (!file) return;
     showToast('⏳ Enviando foto de perfil...');
     try {
-      const r = window._ref(window._storage, 'profile/avatar_' + Date.now());
-      await window._uploadBytes(r, file);
-      const url = await window._getDownloadURL(r);
+      const url = await window.uploadToCloudinary(file);
       setAvatarUI(url);
       await window._setDoc(window._doc(window._db, 'profile', 'main'), { avatarUrl: url }, { merge: true });
       showToast('✅ Foto de perfil atualizada!');
@@ -731,9 +736,7 @@
     const file = e.target.files[0]; if (!file) return;
     showToast('⏳ Enviando foto de capa...');
     try {
-      const r = window._ref(window._storage, 'profile/cover_' + Date.now());
-      await window._uploadBytes(r, file);
-      const url = await window._getDownloadURL(r);
+      const url = await window.uploadToCloudinary(file);
       setCoverUI(url);
       await window._setDoc(window._doc(window._db, 'profile', 'main'), { coverUrl: url }, { merge: true });
       showToast('✅ Foto de capa atualizada!');
@@ -801,9 +804,7 @@
       let mediaUrl = '';
       if (mediaFile) {
         showToast('⏳ Enviando mídia...');
-        const storageRef = window._ref(window._storage, 'posts/' + Date.now() + '_' + mediaFile.name);
-        await window._uploadBytes(storageRef, mediaFile);
-        mediaUrl = await window._getDownloadURL(storageRef);
+        mediaUrl = await window.uploadToCloudinary(mediaFile);
       }
       await window._addDoc(window._collection(window._db, 'posts'), {
         text, caption, mediaUrl, mediaType,
@@ -926,8 +927,4 @@
   }
 
   document.getElementById('senhaModal').addEventListener('click', e => { if (e.target === document.getElementById('senhaModal')) closeSenha(); });
-  document.getElementById('composerModal').addEventListener('click', e => { if (e.target === document.getElementById('composerModal')) closeComposer(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSenha(); closeComposer(); } });
-</script>
-</body>
-</html>
+  document.getElementById('composerModal').addEventListene
