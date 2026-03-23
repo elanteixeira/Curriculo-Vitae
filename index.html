@@ -51,10 +51,10 @@
   window.addEventListener('load', () => {
     setTimeout(() => {
       window._fbReady = true;
-      loadPosts();
-      loadProfile();
       document.getElementById('fbStatus').textContent = '🟢 Online';
       document.getElementById('fbStatus').className = 'fb-status online';
+      if (window.loadPosts) window.loadPosts();
+      if (window.loadProfile) window.loadProfile();
     }, 1200);
   });
 </script>
@@ -693,7 +693,7 @@
   }
 
   // ── PROFILE ──
-  async function loadProfile() {
+  window.loadProfile = async function loadProfile() {
     if (!window._db) return;
     try {
       const snap = await window._getDoc(window._doc(window._db, 'profile', 'main'));
@@ -823,8 +823,8 @@
   }
 
   // ── LOAD POSTS ──
-  function loadPosts() {
-    if (!window._db) { setTimeout(loadPosts, 1000); return; }
+  window.loadPosts = function loadPosts() {
+    if (!window._db) { setTimeout(window.loadPosts, 1000); return; }
     const q = window._query(window._collection(window._db, 'posts'), window._orderBy('timestamp', 'desc'));
     window._onSnapshot(q, (snapshot) => {
       document.getElementById('loadingPosts').style.display = 'none';
